@@ -1,65 +1,79 @@
-<!-- index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔥 Premium Key System</title>
     <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
-            background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
-            color: #fff;
+            background: linear-gradient(45deg, #141e30, #243b55);
+            color: #f0f0f0;
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 30px;
-            background: rgba(0,0,0,0.5);
+            max-width: 500px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
             border-radius: 15px;
-            box-shadow: 0 0 30px rgba(255,0,255,0.2);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #00ffff;
         }
         .btn {
-            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            display: inline-block;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
             color: white;
-            padding: 15px 30px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             margin: 10px;
             font-size: 16px;
-            transition: all 0.3s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255,0,255,0.4);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
         }
         .free-btn {
             background: linear-gradient(45deg, #ff6b6b, #ff9999);
         }
         #keyDisplay {
-            margin: 20px;
+            margin: 20px 0;
             padding: 20px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             font-size: 18px;
-            word-break: break-all;
+            word-break: break-word;
         }
         .copy-btn {
-            background: #2196F3;
-            padding: 5px 15px;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
             border-radius: 4px;
             cursor: pointer;
+        }
+        .copy-btn:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔥 Premium Key System</h1>
-        <button class="btn" onclick="getKey()">Get Premium Key</button>
-        <button class="btn free-btn" onclick="getFreeKey()">Free Test Key</button>
+        <button class="btn" onclick="startKeyProcess()">Get Premium Key</button>
+        <button class="btn free-btn" onclick="generateFreeKey()">Free Test Key</button>
         <div id="keyDisplay"></div>
     </div>
 
@@ -68,47 +82,43 @@
         const CHECKPOINTS = 2;
         let currentCheckpoint = 0;
 
-        linkvertise(LINKVERTISE_ID, {
-            whitelist: [""],
-            blacklist: []
-        });
-
-        function generateKey(prefix = 'TEST') {
+        function generateKey(prefix = 'KEY') {
             const timestamp = Date.now();
-            const random = Math.random().toString(36).substring(7).toUpperCase();
-            return `${prefix}-${random}-${timestamp}`;
+            const random = Math.random().toString(36).substring(2, 10).toUpperCase();
+            return `${prefix}-${CryptoJS.SHA256(timestamp + random).toString().substring(0, 8)}`;
         }
 
-        function copyKey(key) {
-            navigator.clipboard.writeText(key);
-            alert('Key copied to clipboard!');
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Key copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy key. Please try again.');
+            });
         }
 
         function displayKey(key) {
-            const keyDisplay = document.getElementById('keyDisplay');
-            keyDisplay.innerHTML = `
+            document.getElementById('keyDisplay').innerHTML = `
                 <h3>Your Key:</h3>
                 <p>${key}</p>
-                <button class="copy-btn" onclick="copyKey('${key}')">Copy Key</button>
+                <button class="copy-btn" onclick="copyToClipboard('${key}')">Copy Key</button>
             `;
-            keyDisplay.style.display = 'block';
         }
 
-        function getFreeKey() {
-            const freeKey = generateKey('TEST');
+        function generateFreeKey() {
+            const freeKey = generateKey('FREE');
             displayKey(freeKey);
         }
 
-        function getKey() {
+        function startKeyProcess() {
             const keyHash = CryptoJS.SHA256(Date.now().toString()).toString();
             localStorage.setItem('keyHash', keyHash);
             currentCheckpoint = 0;
-            
+
             const linkvertiseUrl = `https://link-target.net/${LINKVERTISE_ID}/checkpoint-${currentCheckpoint + 1}?key=${keyHash}`;
             window.location.href = linkvertiseUrl;
         }
 
-        window.onload = async function() {
+        window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const keyHash = urlParams.get('key');
             const checkpoint = urlParams.get('checkpoint');
