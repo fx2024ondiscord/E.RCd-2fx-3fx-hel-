@@ -2,81 +2,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Roblox Key System</title>
+    <title>Advanced Key System</title>
     <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
-            background: #1a1a1a;
+            background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
             color: #fff;
-            font-family: Arial;
-            text-align: center;
-            padding: 50px;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255,105,180,0.3);
         }
         .btn {
-            background: #ff69b4;
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
             color: white;
             padding: 15px 30px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
-            margin: 20px;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
         }
         #keyDisplay {
-            display: none;
             margin: 20px;
             padding: 20px;
-            background: #2a2a2a;
+            background: rgba(255,255,255,0.1);
             border-radius: 5px;
+            display: none;
+        }
+        .timer {
+            font-size: 24px;
+            color: #ff69b4;
         }
     </style>
 </head>
 <body>
-    <h1>Get Your Key</h1>
-    <button class="btn" onclick="getKey()">Get Key</button>
-    <div id="keyDisplay"></div>
+    <div class="container">
+        <h1>Premium Key System</h1>
+        <div class="timer" id="timer"></div>
+        <button class="btn" onclick="getKey()">Get Key</button>
+        <div id="keyDisplay"></div>
+    </div>
 
     <script>
-        // Initialize Linkvertise
-        linkvertise(1017113, {
-            whitelist: [""],
-            blacklist: []
-        });
+        linkvertise(1017113, {whitelist: [""], blacklist: []});
 
-        // Your API endpoint
         const API_URL = 'https://your-vercel-api.vercel.app/api/keys';
         
-        async function getKey() {
-            // Generate a temporary key
-            const tempKey = Math.random().toString(36).substring(7);
-            
-            // Store in localStorage
-            localStorage.setItem('pendingKey', tempKey);
-            
-            // Redirect to Linkvertise
-            window.location.href = `https://link-target.net/1017113/your-key-page?key=${tempKey}`;
+        function generateKeyHash() {
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(7);
+            return CryptoJS.SHA256(`${timestamp}-${random}`).toString();
         }
 
-        // Check if returning from Linkvertise
+        async function getKey() {
+            const keyHash = generateKeyHash();
+            localStorage.setItem('keyHash', keyHash);
+            
+            startTimer(300); // 5 minute timer
+            
+            window.location.href = `https://link-target.net/1017113/get-key?hash=${keyHash}`;
+        }
+
+        function startTimer(duration) {
+            let timer = duration;
+            const display = document.getElementById('timer');
+            
+            const countdown = setInterval(() => {
+                const minutes = Math.floor(timer / 60);
+                const seconds = timer % 60;
+                
+                display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                if (--timer < 0) {
+                    clearInterval(countdown);
+                    localStorage.removeItem('keyHash');
+                    display.textContent = 'Expired! Try Again';
+                }
+            }, 1000);
+        }
+
         window.onload = async function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const key = urlParams.get('key');
+            const hash = urlParams.get('hash');
             
-            if (key && localStorage.getItem('pendingKey') === key) {
-                // Verify completion
-                const response = await fetch(`${API_URL}/verify`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ key })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('keyDisplay').style.display = 'block';
-                    document.getElementById('keyDisplay').innerHTML = `Your Key: ${data.finalKey}`;
-                    localStorage.removeItem('pendingKey');
+            if (hash && localStorage.getItem('keyHash') === hash) {
+                try {
+                    const response = await fetch(`${API_URL}/verify`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ 
+                            hash,
+                            timestamp: Date.now()
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('keyDisplay').style.display = 'block';
+                        document.getElementById('keyDisplay').innerHTML = `
+                            <h3>Your Premium Key:</h3>
+                            <p>${data.finalKey}</p>
+                            <small>Valid for 24 hours</small>
+                        `;
+                    }
+                } catch (err) {
+                    console.error('Verification failed:', err);
                 }
             }
         }
