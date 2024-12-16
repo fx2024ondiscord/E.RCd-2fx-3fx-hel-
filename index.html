@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Advanced Key System</title>
+    <title>🔥 Premium Key System</title>
     <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
@@ -10,112 +10,120 @@
             background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
             color: #fff;
             font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
         }
         .container {
             max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(255,105,180,0.3);
+            margin: 20px auto;
+            padding: 30px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255,0,255,0.2);
         }
         .btn {
-            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
             color: white;
             padding: 15px 30px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.3s;
+            margin: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
         }
         .btn:hover {
             transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,0,255,0.4);
+        }
+        .free-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff9999);
         }
         #keyDisplay {
             margin: 20px;
             padding: 20px;
             background: rgba(255,255,255,0.1);
-            border-radius: 5px;
-            display: none;
+            border-radius: 8px;
+            font-size: 18px;
+            word-break: break-all;
         }
-        .timer {
-            font-size: 24px;
-            color: #ff69b4;
+        .copy-btn {
+            background: #2196F3;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Premium Key System</h1>
-        <div class="timer" id="timer"></div>
-        <button class="btn" onclick="getKey()">Get Key</button>
+        <h1>🔥 Premium Key System</h1>
+        <button class="btn" onclick="getKey()">Get Premium Key</button>
+        <button class="btn free-btn" onclick="getFreeKey()">Free Test Key</button>
         <div id="keyDisplay"></div>
     </div>
 
     <script>
-        linkvertise(1017113, {whitelist: [""], blacklist: []});
+        const LINKVERTISE_ID = '1017113';
+        const CHECKPOINTS = 2;
+        let currentCheckpoint = 0;
 
-        const API_URL = 'https://e-r-cd-2fx-3fx-hel.vercel.app/';
-        
-        function generateKeyHash() {
+        linkvertise(LINKVERTISE_ID, {
+            whitelist: [""],
+            blacklist: []
+        });
+
+        function generateKey(prefix = 'TEST') {
             const timestamp = Date.now();
-            const random = Math.random().toString(36).substring(7);
-            return CryptoJS.SHA256(`${timestamp}-${random}`).toString();
+            const random = Math.random().toString(36).substring(7).toUpperCase();
+            return `${prefix}-${random}-${timestamp}`;
         }
 
-        async function getKey() {
-            const keyHash = generateKeyHash();
+        function copyKey(key) {
+            navigator.clipboard.writeText(key);
+            alert('Key copied to clipboard!');
+        }
+
+        function displayKey(key) {
+            const keyDisplay = document.getElementById('keyDisplay');
+            keyDisplay.innerHTML = `
+                <h3>Your Key:</h3>
+                <p>${key}</p>
+                <button class="copy-btn" onclick="copyKey('${key}')">Copy Key</button>
+            `;
+            keyDisplay.style.display = 'block';
+        }
+
+        function getFreeKey() {
+            const freeKey = generateKey('TEST');
+            displayKey(freeKey);
+        }
+
+        function getKey() {
+            const keyHash = CryptoJS.SHA256(Date.now().toString()).toString();
             localStorage.setItem('keyHash', keyHash);
+            currentCheckpoint = 0;
             
-            startTimer(300); // 5 minute timer
-            
-            window.location.href = `https://link-target.net/1017113/get-key?hash=${keyHash}`;
-        }
-
-        function startTimer(duration) {
-            let timer = duration;
-            const display = document.getElementById('timer');
-            
-            const countdown = setInterval(() => {
-                const minutes = Math.floor(timer / 60);
-                const seconds = timer % 60;
-                
-                display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                
-                if (--timer < 0) {
-                    clearInterval(countdown);
-                    localStorage.removeItem('keyHash');
-                    display.textContent = 'Expired! Try Again';
-                }
-            }, 1000);
+            const linkvertiseUrl = `https://link-target.net/${LINKVERTISE_ID}/checkpoint-${currentCheckpoint + 1}?key=${keyHash}`;
+            window.location.href = linkvertiseUrl;
         }
 
         window.onload = async function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const hash = urlParams.get('hash');
-            
-            if (hash && localStorage.getItem('keyHash') === hash) {
-                try {
-                    const response = await fetch(`${API_URL}/verify`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ 
-                            hash,
-                            timestamp: Date.now()
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        document.getElementById('keyDisplay').style.display = 'block';
-                        document.getElementById('keyDisplay').innerHTML = `
-                            <h3>Your Premium Key:</h3>
-                            <p>${data.finalKey}</p>
-                            <small>Valid for 24 hours</small>
-                        `;
+            const keyHash = urlParams.get('key');
+            const checkpoint = urlParams.get('checkpoint');
+
+            if (keyHash && keyHash === localStorage.getItem('keyHash')) {
+                if (checkpoint) {
+                    currentCheckpoint = parseInt(checkpoint);
+                    if (currentCheckpoint < CHECKPOINTS) {
+                        const nextUrl = `https://link-target.net/${LINKVERTISE_ID}/checkpoint-${currentCheckpoint + 1}?key=${keyHash}`;
+                        window.location.href = nextUrl;
+                    } else {
+                        const premiumKey = generateKey('PREMIUM');
+                        displayKey(premiumKey);
+                        localStorage.removeItem('keyHash');
                     }
-                } catch (err) {
-                    console.error('Verification failed:', err);
                 }
             }
         }
