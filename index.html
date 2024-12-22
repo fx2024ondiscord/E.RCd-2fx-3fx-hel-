@@ -1,10 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Key System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Key System ✨</title>
     <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
+    <style>
+        body {
+            background: linear-gradient(45deg, #ff66b2, #6666ff);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        
+        #key {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 18px;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #ff66b2;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background: #ff3399;
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>🔐 Your Special Key 🔐</h1>
+        <div id="key">Loading your key...</div>
+        <button class="copy-btn" onclick="copyKey()">Copy Key</button>
+    </div>
+
     <script>
         // Initialize Linkvertise
         linkvertise(1017113, {
@@ -12,16 +65,20 @@
             blacklist: []
         });
         
-        // Get hash from URL parameters
+        // Get and display hash
         const urlParams = new URLSearchParams(window.location.search);
         const hash = urlParams.get('hash');
         
-        // Display key after ad completion
-        function showKey() {
-            document.getElementById("key").innerText = "Your key: " + hash;
+        if (hash) {
+            document.getElementById("key").innerText = hash;
+        }
+        
+        // Copy function
+        function copyKey() {
+            const keyText = document.getElementById("key").innerText;
+            navigator.clipboard.writeText(keyText);
+            alert("Key copied to clipboard! 💖");
         }
     </script>
-    
-    <div id="key"></div>
 </body>
 </html>
